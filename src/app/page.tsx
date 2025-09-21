@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+// nice
 
 type RGB = { r: number; g: number; b: number };
 

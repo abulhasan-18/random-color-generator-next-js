@@ -1,11 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-// nice
 
 type RGB = { r: number; g: number; b: number };
 
-// --- Color utils (same logic as your HTML) ---
 const rand = () => Math.floor(Math.random() * 256);
 const toHex = ({ r, g, b }: RGB) =>
   (
@@ -19,7 +17,6 @@ const luminance = ({ r, g, b }: RGB) => {
   });
   return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
 };
-// NEW: HSL formatter
 const hslStr = ({ r, g, b }: RGB) => {
   const rr = r / 255,
     gg = g / 255,
@@ -52,10 +49,9 @@ const hslStr = ({ r, g, b }: RGB) => {
 };
 
 export default function Page() {
-  // color state
-  const [color, setColor] = useState<RGB>(() => ({ r: 108, g: 92, b: 231 })); // initial #6C5CE7
+  const [color, setColor] = useState<RGB>(() => ({ r: 108, g: 92, b: 231 }));
   const [copied, setCopied] = useState<null | "hex" | "rgb" | "hsl">(null);
-  const [pulseKey, setPulseKey] = useState(0); // to restart pulse animation
+  const [pulseKey, setPulseKey] = useState(0);
 
   const hex = useMemo(() => toHex(color), [color]);
   const rgb = useMemo(() => rgbStr(color), [color]);
@@ -65,11 +61,9 @@ export default function Page() {
     [color]
   );
 
-  // reflect color into CSS var --current + background wash (like your HTML)
   useEffect(() => {
     const root = document.documentElement;
     root.style.setProperty("--current", hex);
-    // Enhance body bg subtly with color wash (global style targets body)
     const body = document.body as HTMLBodyElement;
     body.style.background = `
       radial-gradient(1200px 800px at 10% 10%, ${hex}22, transparent 60%),
@@ -81,11 +75,9 @@ export default function Page() {
   const setColorRandom = useCallback(() => {
     const next: RGB = { r: rand(), g: rand(), b: rand() };
     setColor(next);
-    // restart pulse animation
     setPulseKey((k) => k + 1);
   }, []);
 
-  // Copy with Clipboard API (with fallback) + transient UI state
   const copyText = useCallback(
     async (text: string, key: "hex" | "rgb" | "hsl") => {
       try {
@@ -110,7 +102,6 @@ export default function Page() {
     []
   );
 
-  // Keyboard shortcuts: Space / G to generate
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (document.activeElement?.tagName || "").toLowerCase();
@@ -125,7 +116,6 @@ export default function Page() {
     return () => window.removeEventListener("keydown", onKey);
   }, [setColorRandom]);
 
-  // First paint: generate once (same behavior as HTML)
   useEffect(() => {
     setColorRandom();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,7 +140,6 @@ export default function Page() {
               aria-label="Generate new color"
               onClick={setColorRandom}
             >
-              {/* spark icon */}
               <svg
                 width="18"
                 height="18"
@@ -171,7 +160,6 @@ export default function Page() {
           </div>
 
           <div className="grid">
-            {/* Swatch */}
             <div className="swatchWrap">
               <div
                 className="swatch"
@@ -181,9 +169,7 @@ export default function Page() {
               />
             </div>
 
-            {/* Codes */}
             <div className="codes">
-              {/* HEX */}
               <div>
                 <div className="label">Hex</div>
                 <div className="codeRow">
@@ -201,7 +187,6 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* RGB */}
               <div>
                 <div className="label">RGB</div>
                 <div className="codeRow">
@@ -219,7 +204,6 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* HSL (NEW) */}
               <div>
                 <div className="label">HSL</div>
                 <div className="codeRow">
@@ -246,7 +230,18 @@ export default function Page() {
         </section>
       </main>
 
-      {/* Styles (same as before) */}
+      {/* Footer */}
+      <footer className="footer">
+        <div className="footerContent">
+          <img src="/logo.png" alt="Logo" className="footerLogo" />
+          <span className="footerBrand">Random Color Generator</span>
+        </div>
+        <p className="footerCopy">
+          © {new Date().getFullYear()} Mohammed Abulhasan. All rights reserved.
+        </p>
+      </footer>
+
+      {/* Styles */}
       <style jsx global>{`
         :root {
           --bg: #0b0b0f;
@@ -285,7 +280,7 @@ export default function Page() {
             linear-gradient(180deg, #0a0a0d 0%, #0f1117 100%);
           min-height: 100%;
           display: grid;
-          grid-template-rows: auto 1fr;
+          grid-template-rows: auto 1fr auto;
         }
       `}</style>
 
@@ -328,26 +323,6 @@ export default function Page() {
           position: relative;
           overflow: hidden;
         }
-        .card::before {
-          content: "";
-          position: absolute;
-          inset: -2px;
-          border-radius: calc(var(--radius) + 2px);
-          padding: 2px;
-          background: conic-gradient(
-            from 0deg,
-            color-mix(in oklab, var(--current) 70%, white),
-            transparent 30%,
-            transparent 70%,
-            color-mix(in oklab, var(--current) 70%, white)
-          );
-          -webkit-mask: linear-gradient(#000 0 0) content-box,
-            linear-gradient(#000 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
-          opacity: 0.15;
-          pointer-events: none;
-        }
 
         .title {
           display: flex;
@@ -376,17 +351,9 @@ export default function Page() {
           cursor: pointer;
           transition: transform 0.15s ease, box-shadow 0.2s ease,
             border-color 0.2s ease;
-          box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
           user-select: none;
           position: relative;
           overflow: hidden;
-        }
-        .gen:hover {
-          transform: translateY(-1px);
-          border-color: color-mix(in oklab, var(--current) 65%, white 10%);
-        }
-        .gen:active {
-          transform: translateY(0);
         }
 
         .grid {
@@ -411,26 +378,6 @@ export default function Page() {
           border-radius: 28px;
           background: var(--current);
           box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
-          transition: transform 0.25s ease, box-shadow 0.25s ease;
-          position: relative;
-          overflow: hidden;
-          isolation: isolate;
-        }
-        .swatch::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(
-            320px 220px at 70% 20%,
-            rgba(255, 255, 255, 0.22),
-            transparent 45%
-          );
-          mix-blend-mode: soft-light;
-          pointer-events: none;
-        }
-        .swatch:hover {
-          transform: scale(1.02);
-          box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55);
         }
 
         .codes {
@@ -458,8 +405,6 @@ export default function Page() {
           margin-bottom: 6px;
         }
         .value {
-          font-family: "Rubik", Inter, ui-monospace, SFMono-Regular, Menlo,
-            Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
           font-weight: 600;
           font-size: 18px;
           white-space: nowrap;
@@ -474,11 +419,6 @@ export default function Page() {
           border-radius: 10px;
           font-weight: 700;
           cursor: pointer;
-          transition: transform 0.15s ease, background 0.2s ease,
-            color 0.2s ease, border-color 0.2s ease;
-        }
-        .copy:hover {
-          transform: translateY(-1px);
         }
         .copy.copied {
           background: var(--accent);
@@ -500,27 +440,36 @@ export default function Page() {
           padding: 1px 6px;
           border-radius: 6px;
           font-size: 11px;
-          margin: 0 2px;
         }
 
-        .genPulse {
-          position: absolute;
-          inset: 0;
-          border-radius: inherit;
-          pointer-events: none;
-          opacity: 0;
-          animation: pulse 0.6s ease-out;
+        /* Footer */
+        .footer {
+          border-top: 1px solid var(--stroke);
+          background: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(10px);
+          padding: 18px 24px;
+          text-align: center;
         }
-        @keyframes pulse {
-          0% {
-            opacity: 0.4;
-            box-shadow: 0 0 0 0
-              color-mix(in oklab, var(--current) 50%, transparent);
-          }
-          100% {
-            opacity: 0;
-            box-shadow: 0 0 0 22px transparent;
-          }
+        .footerContent {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          margin-bottom: 6px;
+        }
+        .footerLogo {
+          width: 24px;
+          height: 24px;
+          border-radius: 6px;
+        }
+        .footerBrand {
+          font-weight: 700;
+          color: var(--text);
+        }
+        .footerCopy {
+          font-size: 13px;
+          color: var(--muted);
+          margin: 0;
         }
       `}</style>
     </>
